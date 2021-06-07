@@ -4,12 +4,18 @@ import re
 import json
 import random
 import time
+import pandas as pd
+
+'''
+定义get函数，取得HTML文件并伪装爬虫。
+1. 代码执行前暂停0.1s
+2. 随机一个文件头出来（User-Agent）
+取得html文件
+'''
 
 def get_html(url):
 
     time.sleep(0.1)
-###代码执行前暂停0.1s,防止反爬虫
-
     my_headers = ['Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36',
                     'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
                     'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:30.0) Gecko/20100101 Firefox/30.0',
@@ -23,46 +29,44 @@ def get_html(url):
                     'Lynx/2.8.5rel.1 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/1.2.9',
                     'Mozilla/5.0 (X11; Linux i686) AppleWebKit/535.7 (KHTML, like Gecko) Ubuntu/11.04 Chromium/16.0.912.77 Chrome/16.0.912.77 Safari/535.7',
                     'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:10.0) Gecko/20100101 Firefox/10.0 ']
-    headers = {
-        'user-agent': random.choice(my_headers)
-    }
-###反反爬虫措施，随机一个文件头出来  
-
+    headers = {'user-agent': random.choice(my_headers)}
     try:    
         html = requests.get(url,headers=headers)
         return html.text
     except requests.exceptions.RequestException:
         print(url,'请求失败')
-###取得url
+
 
 #写完先去吃饭，饿死我了。
 
 
-###开始写爬虫
+'''
+重头戏，爬虫的处理
+首先对down下来的网页进行分析，找到需要爬取的数据
+使用正则表达式和re提取数据
+'''
+
 def parse_html(html):
-    '''Parse the HTML and extract the information you need'''
     
-    title = re.findall('<em>(.*?)</em>',html,re.S)
-    del(title[0])
-    return title
+    # title = re.findall('<em>(.*?)</em>',html,re.S)
+    # del(title[0])
+    # return title
 
+    pattern = '''<em>(.*?)</em>.*?<li class="intro">(.*?)</li>'''
+    informations = re.findall(pattern,str(html),re.S)
+    return(informations)
     
-
-
-
-
-
 
 
 
 if __name__ == '__main__':
-#    urls = [f'https://movie.douban.com/people/181401162/wish?start={i*15}' for i in range(0,35)]
-    urls = 'https://movie.douban.com/people/181401162/wish?start=0'
+    #urls = [f'https://movie.douban.com/people/181401162/wish?start={i*15}' for i in range(0,35)]
+     urls = 'https://movie.douban.com/people/181401162/wish?start=0'
 html = get_html(urls)
-print(parse_html(html))
+list=parse_html(html)
+name=["title","intro"]
+test=pd.DataFrame(columns=name,data=list)
+print(test)
+test.to_csv('C:/Users/han/Desktop/Douban_Crawl/testcsv.csv',encoding='utf-8-sig')
 
 
-    # for url in urls:  
-    #     html = get_html(url)
-    #     books = parse_html(html)
-    #     print_(books)
